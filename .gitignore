@@ -1,0 +1,11 @@
+# Ignore keystore and passwords
+.keystore_pass
+debug.keystore
+
+# Ignore Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore generated APKs
+*.apk
