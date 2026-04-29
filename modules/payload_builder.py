@@ -6,7 +6,7 @@ Payload Builder Module
 import os
 import subprocess
 import shutil
-from colorama import Fore, Style
+from colorama import Fore
 
 class PayloadBuilder:
     def __init__(self, lhost, lport, payload_name):
