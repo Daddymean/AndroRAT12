@@ -15,10 +15,8 @@
 
 import os
 import sys
-import time
-import argparse
 import subprocess
-from colorama import init, Fore, Style, Back
+from colorama import init, Fore, Style
 import platform
 
 # Initialize colorama
