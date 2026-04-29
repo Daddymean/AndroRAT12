@@ -18,6 +18,7 @@ import sys
 import time
 import argparse
 import subprocess
+import socket
 from colorama import init, Fore, Style, Back
 import platform
 
@@ -38,15 +39,13 @@ class AndroidHackerFramework:
     def get_local_ip(self):
         """Get local IP address"""
         try:
-            # Try to get IP from network
-            result = subprocess.run(["hostname", "-I"], capture_output=True, text=True)
-            if result.stdout:
-                ips = result.stdout.strip().split()
-                for ip in ips:
-                    if ip.startswith("192.168") or ip.startswith("10."):
-                        return ip
-            return "192.168.1.108"
-        except:
+            # Use socket to get the local IP address
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                # doesn't even have to be reachable
+                s.connect(('8.8.8.8', 1))
+                ip = s.getsockname()[0]
+                return ip
+        except Exception:
             return "192.168.1.108"
     
     def clear_screen(self):
