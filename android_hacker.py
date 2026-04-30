@@ -260,40 +260,43 @@ class AndroidHackerFramework:
         else:
             print(f"{Fore.RED}[-] requirements.txt not found{Fore.WHITE}")
     
+    def _handle_clear(self):
+        """Clear screen and show banner"""
+        self.clear_screen()
+        self.print_banner()
+
+    def _handle_exit(self):
+        """Exit the framework"""
+        print(f"\n{Fore.RED}[!] Exiting framework...{Fore.WHITE}\n")
+        sys.exit(0)
+
     def run(self):
         """Main loop"""
         self.clear_screen()
         self.print_banner()
         
+        dispatch = {
+            "1": self.generate_payload,
+            "2": self.start_listener,
+            "3": self.start_http_server,
+            "4": self.check_sessions,
+            "5": self.interactive_session,
+            "6": self.change_settings,
+            "7": self.show_info,
+            "8": self._handle_clear,
+            "9": self._handle_exit,
+            "help": self.print_menu,
+            "install": self.install_requirements
+        }
+
         while True:
             try:
                 self.print_menu()
                 choice = input(f"\n{Fore.GREEN}[{Fore.WHITE}HACKER{Fore.GREEN}]> {Fore.WHITE}").strip()
                 
-                if choice == "1":
-                    self.generate_payload()
-                elif choice == "2":
-                    self.start_listener()
-                elif choice == "3":
-                    self.start_http_server()
-                elif choice == "4":
-                    self.check_sessions()
-                elif choice == "5":
-                    self.interactive_session()
-                elif choice == "6":
-                    self.change_settings()
-                elif choice == "7":
-                    self.show_info()
-                elif choice == "8":
-                    self.clear_screen()
-                    self.print_banner()
-                elif choice == "9":
-                    print(f"\n{Fore.RED}[!] Exiting framework...{Fore.WHITE}\n")
-                    sys.exit(0)
-                elif choice.lower() == "help":
-                    self.print_menu()
-                elif choice.lower() == "install":
-                    self.install_requirements()
+                handler = dispatch.get(choice.lower())
+                if handler:
+                    handler()
                 else:
                     print(f"\n{Fore.RED}[-] Invalid choice! Select 1-9{Fore.WHITE}")
                     
