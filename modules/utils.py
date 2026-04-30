@@ -4,9 +4,10 @@ Utility Functions Module
 """
 
 import subprocess
+import shutil
 import os
 import socket
-from colorama import Fore, Style
+from colorama import Fore
 
 def check_root():
     """Check if running as root"""
@@ -28,11 +29,7 @@ def get_local_ip():
 
 def check_tool(tool):
     """Check if tool is installed"""
-    try:
-        subprocess.run(["which", tool], capture_output=True, check=True)
-        return True
-    except:
-        return False
+    return shutil.which(tool) is not None
 
 def install_tool(tool):
     """Install required tool"""

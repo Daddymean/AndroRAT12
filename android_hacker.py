@@ -15,10 +15,9 @@
 
 import os
 import sys
-import time
-import argparse
 import subprocess
-from colorama import init, Fore, Style, Back
+import shutil
+from colorama import init, Fore, Style
 import platform
 
 # Initialize colorama
@@ -244,11 +243,9 @@ class AndroidHackerFramework:
         
     def check_tool(self, tool):
         """Check if tool is installed"""
-        try:
-            subprocess.run(["which", tool], capture_output=True, check=True)
+        if shutil.which(tool) is not None:
             return f"{Fore.GREEN}✓ Installed{Fore.WHITE}"
-        except:
-            return f"{Fore.RED}✗ Missing{Fore.WHITE}"
+        return f"{Fore.RED}✗ Missing{Fore.WHITE}"
     
     def install_requirements(self):
         """Install requirements"""
