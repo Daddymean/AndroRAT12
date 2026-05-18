@@ -19,6 +19,7 @@ import time
 import argparse
 import subprocess
 import shutil
+from modules.utils import get_local_ip as fetch_ip
 from colorama import init, Fore, Style, Back
 import platform
 
@@ -38,17 +39,10 @@ class AndroidHackerFramework:
         
     def get_local_ip(self):
         """Get local IP address"""
-        try:
-            # Try to get IP from network
-            result = subprocess.run(["hostname", "-I"], capture_output=True, text=True)
-            if result.stdout:
-                ips = result.stdout.strip().split()
-                for ip in ips:
-                    if ip.startswith("192.168") or ip.startswith("10."):
-                        return ip
+        ip = fetch_ip()
+        if ip == "127.0.0.1":
             return "192.168.1.108"
-        except:
-            return "192.168.1.108"
+        return ip
     
     def clear_screen(self):
         """Clear terminal screen"""
