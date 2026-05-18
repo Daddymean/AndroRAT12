@@ -3,9 +3,8 @@
 Listener Module
 """
 
-import subprocess
 import os
-from colorama import Fore, Style
+from colorama import Fore
 
 class Listener:
     def __init__(self, lhost, lport):
