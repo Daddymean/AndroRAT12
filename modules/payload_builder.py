@@ -16,6 +16,31 @@ class PayloadBuilder:
         self.lport = lport
         self.payload_name = payload_name
         
+    def _get_keystore_password(self):
+        """Get or generate keystore password"""
+        password = os.environ.get("ANDROID_KEYSTORE_PASS")
+        if password:
+            return password
+
+        pass_file = ".keystore_pass"
+        if os.path.exists(pass_file):
+            with open(pass_file, "r") as f:
+                return f.read().strip()
+
+        # Generate random password
+        alphabet = string.ascii_letters + string.digits
+        password = ''.join(secrets.choice(alphabet) for _ in range(16))
+
+        # Save to file with restricted permissions
+        try:
+            fd = os.open(pass_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, 'w') as f:
+                f.write(password)
+        except Exception as e:
+            print(f"{Fore.RED}[!] Error saving keystore password: {e}{Fore.WHITE}")
+
+        return password
+
     def build(self):
         """Build the payload"""
         print(f"\n{Fore.YELLOW}[+] Building payload for {self.lhost}:{self.lport}{Fore.WHITE}")
@@ -118,6 +143,7 @@ class PayloadBuilder:
         apk_file = f"{name}.apk"
         final_name = f"{name}_final.apk"
         aligned = f"{name}_aligned.apk"
+        password = self._get_keystore_password()
         
         password = self._get_keystore_password()
 
